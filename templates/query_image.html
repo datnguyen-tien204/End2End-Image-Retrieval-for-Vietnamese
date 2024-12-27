@@ -1,0 +1,350 @@
+{% extends 'layout.html' %}
+{% block content %}
+
+<div id="contentWrapper" style="display: flex; height: 80vh; margin-top: 10px;">
+  <div id="leftPane" style="width: 40%; border-right: 2px solid #ccc; overflow-y: auto; padding: 10px;">
+    <div id="gallery"></div>
+  </div>
+  <div id="rightPane" style="width: 60%; padding: 10px;">
+    <!-- Nội dung bên phải -->
+  </div>
+</div>
+
+<div id="inputWrapper" style="position: fixed; bottom: 10px; left: 50%; transform: translateX(-50%); display: flex;">
+     <div id="selectedFolder" style="color: purple; margin-top: 7px; text-align: left; font-weight: bold;"></div>
+    <div style="display: flex; justify-content: center; align-items: center; height: 5vh">
+      <button class="btn-101" id="selectFolderBtn">
+        <img src="https://img.icons8.com/?size=100&id=CYKLk4DosdHW&format=png&color=000000" alt="Attach icon" style="width: 17px; height: 17px;">
+        <svg>
+          <defs>
+            <filter id="glow">
+              <fegaussianblur result="coloredBlur" stddeviation="5"></fegaussianblur>
+              <femerge>
+                <femergenode in="coloredBlur"></femergenode>
+                <femergenode in="coloredBlur"></femergenode>
+                <femergenode in="coloredBlur"></femergenode>
+                <femergenode in="SourceGraphic"></femergenode>
+              </femerge>
+            </filter>
+          </defs>
+          <rect />
+        </svg>
+      </button>
+      <input id="folderInput" type="file" webkitdirectory directory style="display: none;">
+    </div>
+  <input id="textBox" type="text" placeholder="Nhập nội dung" style="padding: 10px; width: 700px; border-radius: 20px; border: 1px solid #ccc;">
+  <button id="sendButton" style="margin-left: -50px; margin-top: 7px ;border: none;  background-color: #ffffff; color: white; cursor: pointer; width: 17px; height: 17px">
+    <img src="https://img.icons8.com/?size=100&id=7874&format=png&color=000000" alt="Send Icon" style="width: 17px; height: 17px;">
+  </button>
+
+</div>
+
+<style>
+    body {
+    background-color: #8EC5FC;
+background-image: linear-gradient(180deg, #8EC5FC 0%, #E0C3FC 100%);
+    margin: 0;
+    height: 100vh;
+  }
+
+  .btn-101,
+.btn-101 *,
+.btn-101 :after,
+.btn-101 :before,
+.btn-101:after,
+.btn-101:before {
+  border: 0 solid;
+  box-sizing: border-box;
+}
+.btn-101 {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-appearance: button;
+  background-color: #000;
+  background-image: none;
+  color: #fff;
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif,
+    Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji;
+  font-size: 100%;
+  font-weight: 100;
+  line-height: 1;
+  margin: 0;
+  -webkit-mask-image: -webkit-radial-gradient(#000, #fff);
+  padding: 0;
+    text-align: center;
+    margin-right: 10px;
+  text-transform: uppercase;
+}
+.btn-101:disabled {
+  cursor: default;
+}
+.btn-101:-moz-focusring {
+  outline: auto;
+}
+.btn-101 svg {
+  vertical-align: middle;
+}
+.btn-101 [hidden] {
+  display: none;
+}
+.btn-101 {
+  --thickness: 0.3rem;
+  --roundness: 1.2rem;
+  --color: black;
+  --opacity: 0.6;
+  -webkit-backdrop-filter: blur(100px);
+  backdrop-filter: blur(100px);
+  background: none;
+  background: hsla(0, 0%, 100%, 0.2);
+  border: none;
+  border-radius: var(--roundness);
+  color: var(--color);
+  cursor: pointer;
+  display: block;
+  font-family: Poppins, "sans-serif";
+  font-size: 1rem;
+  font-weight: 100;
+  padding: 0.8rem 3rem;
+  position: relative;
+}
+.btn-101:hover {
+  background: hsla(0, 0%, 100%, 0.3);
+  filter: brightness(1.2);
+}
+.btn-101:active {
+  --opacity: 0;
+  background: hsla(0, 0%, 100%, 0.1);
+}
+.btn-101 svg {
+  border-radius: var(--roundness);
+  display: block;
+  filter: url(#glow);
+  height: 100%;
+  left: 0;
+  position: absolute;
+  top: 0;
+  width: 100%;
+}
+.btn-101 rect {
+  fill: none;
+  stroke: rgb(95,33,103);
+  stroke-width: var(--thickness);
+  rx: var(--roundness);
+  stroke-linejoin: round;
+  stroke-dasharray: 185%;
+  stroke-dashoffset: 80;
+  -webkit-animation: snake 2s linear infinite;
+  animation: snake 2s linear infinite;
+  -webkit-animation-play-state: paused;
+  animation-play-state: paused;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 0.2s;
+  width: 100%;
+}
+.btn-101:hover rect {
+  -webkit-animation-play-state: running;
+  animation-play-state: running;
+  opacity: var(--opacity);
+}
+@-webkit-keyframes snake {
+  to {
+    stroke-dashoffset: 370%;
+  }
+}
+@keyframes snake {
+  to {
+    stroke-dashoffset: 370%;
+  }
+}
+
+/*GALLERY*/
+    #gallery {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .image-container {
+    position: relative;
+    width: calc(50% - 10px); /* Hai ảnh mỗi hàng */
+    overflow: hidden;
+    border-radius: 8px;
+  }
+  .image-container img {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+  }
+  .image-container:hover img {
+    transform: scale(1.1);
+  }
+  .hover-icons {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    background-color: rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  .image-container:hover .hover-icons {
+    opacity: 1;
+  }
+  .hover-icons button {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+    transition: background-color 0.3s ease;
+  }
+  .hover-icons button:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+  }
+
+  /* Btn Send */
+    #sendButton {
+    background-color: #000000;
+    border: #ffffff 1px solid;
+    outline: none; /* Xóa viền khi nhấn */
+}
+
+#sendButton:focus {
+    outline: none; /* Đảm bảo không hiện viền khi được chọn */
+}
+
+</style>
+
+<script>
+
+    document.getElementById('textBox').addEventListener('keydown', function (event) {
+    if (event.key === 'Enter') { // Kiểm tra nếu nhấn phím Enter
+        document.getElementById('sendButton').click(); // Gọi sự kiện click nút Gửi
+        event.preventDefault(); // Ngăn chặn hành vi mặc định (như thêm dòng mới)
+    }
+    });
+
+  document.getElementById('selectFolderBtn').addEventListener('click', function () {
+      document.getElementById('folderInput').click();
+  });
+
+  document.getElementById('folderInput').addEventListener('change', function (e) {
+    const files = Array.from(e.target.files);
+    const selectedFolderDiv = document.getElementById('selectedFolder');
+    const gallery = document.getElementById('gallery');
+
+    if (files.length > 0) {
+      const folderPath = files[0].webkitRelativePath.split('/')[0];
+      // selectedFolderDiv.textContent = `Đã chọn: ${folderPath}`;
+        selectedFolderDiv.textContent = ``;
+      gallery.innerHTML = '';
+
+      files.forEach(file => {
+        if (file.type.startsWith('image/')) {
+          const imgContainer = document.createElement('div');
+          imgContainer.className = 'image-container';
+
+          const img = document.createElement('img');
+          img.src = URL.createObjectURL(file);
+
+          const hoverIcons = document.createElement('div');
+          hoverIcons.className = 'hover-icons';
+
+          // Nút phóng to
+          const zoomButton = document.createElement('button');
+          zoomButton.innerHTML = '🔍';
+          zoomButton.onclick = () => {
+            const modal = document.createElement('div');
+            modal.style.position = 'fixed';
+            modal.style.top = '0';
+            modal.style.left = '0';
+            modal.style.width = '100vw';
+            modal.style.height = '100vh';
+            modal.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+            modal.style.display = 'flex';
+            modal.style.justifyContent = 'center';
+            modal.style.alignItems = 'center';
+            modal.style.zIndex = '1000';
+            modal.style.cursor = 'pointer';
+
+            const modalImg = document.createElement('img');
+            modalImg.src = img.src;
+            modalImg.style.maxWidth = '90%';
+            modalImg.style.maxHeight = '90%';
+            modalImg.style.borderRadius = '10px';
+
+            modal.appendChild(modalImg);
+            document.body.appendChild(modal);
+
+            modal.onclick = () => document.body.removeChild(modal);
+          };
+
+          // Nút lưu ảnh
+          const saveButton = document.createElement('button');
+          saveButton.innerHTML = '💾';
+          saveButton.onclick = () => {
+            const link = document.createElement('a');
+            link.href = img.src;
+            link.download = file.name; // Tên file gốc
+            link.click();
+          };
+
+          hoverIcons.appendChild(zoomButton);
+          hoverIcons.appendChild(saveButton);
+
+          imgContainer.appendChild(img);
+          imgContainer.appendChild(hoverIcons);
+
+          gallery.appendChild(imgContainer);
+        }
+      });
+
+        fetch('/upload-folder-path', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ folderPath }),
+        })
+        .then(response => response.json())
+        .then(data => console.log(`Server đã nhận: ${data.message}`))
+        .catch(error => console.error('Lỗi:', error));
+    } else {
+        alert('Không có thư mục nào được chọn.');
+        selectedFolderDiv.textContent = '';
+    }
+  });
+
+  document.getElementById('sendButton').addEventListener('click', function () {
+    const textBox = document.getElementById('textBox');
+    const text = textBox.value.trim();
+
+    if (text) {
+        fetch('/send-text', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ text }),
+        })
+        .then(response => response.json())
+        .then(data => console.log(`Server nhận: ${data.message}`))
+        .catch(error => console.error('Lỗi:', error));
+    } else {
+        alert('Vui lòng nhập nội dung.');
+    }
+  });
+</script>
+{% endblock content %}
