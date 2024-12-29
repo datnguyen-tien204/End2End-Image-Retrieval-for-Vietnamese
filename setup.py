@@ -7,6 +7,7 @@ from flask_qrcode import QRcode
 from pathlib import Path
 import os
 import mimetypes
+import queue
 import sys
 import re
 import json
@@ -471,21 +472,24 @@ def send_text():
             num_files = len([f for f in os.listdir(full_folder_path) if os.path.isfile(os.path.join(full_folder_path, f))])
             if num_files<=50 and not os.path.isfile(os.path.join(app.root_path, 'static/weights/uit-vilc-swin-b.pt')):
                 status=download_weights(app.root_path, "swin")
-                print(status)
+
 
             elif num_files>50 and not os.path.isfile(os.path.join(app.root_path, 'static/weights/uit-vilc-efficientnet-b0.pt')):
                 status=download_weights(app.root_path, "efficient")
-                print(status)
         else:
             print(f"Thư mục '{full_folder_path}' không tồn tại.")
 
         try:
             if (len([f for f in os.listdir(full_folder_path) if os.path.isfile(os.path.join(full_folder_path, f))])<=50):
                 weights_path=os.path.join(app.root_path, 'static/weights/uit-vilc-swin-b.pt')
+                encoder_name = 'swin_base_patch4_window7_224.ms_in22k'
+                model_embeddings = 1024
             else:
                 weights_path=os.path.join(app.root_path, 'static/weights/uit-vilc-efficientnet-b0.pt')
+                encoder_name = 'efficientnet_b0.ra4_e3600_r224_in1k'
+                model_embeddings = 1280
 
-            list_images = main(text, image_path=folder_path,db_path=db_path,weights_path=weights_path)
+            list_images = main(text, image_path=folder_path,db_path=db_path,weights_path=weights_path, image_embedding=model_embeddings,  image_encoder_name=encoder_name)  # Truyền đường dẫn thư mục đầy đủ vào `main`
             selected_images = []
 
             for group in list_images:
@@ -506,6 +510,48 @@ def send_text():
             return jsonify({"error": "Lỗi khi xử lý ảnh."}), 500
     else:
         return jsonify({"error": "No content sent"}), 400
+
+# from flask import Response
+# import threading
+# from flask import stream_with_context
+# import time
+# progress = {"status": "Initializing", "percentage": 0}
+#
+# @app.route('/send-text-progress', methods=['POST'], endpoint="send_text_process")
+# def send_text_process():
+#     global progress
+#     text = request.json.get('text', '')
+#     if not text:
+#         return jsonify({"error": "No text provided."}), 400
+#
+#     progress["status"] = "Processing started"
+#     progress["percentage"] = 0
+#
+#     def process_task():
+#         global progress
+#         for i in range(1, 101):
+#             time.sleep(0.1)  # Simulate processing
+#             progress["percentage"] = i
+#             if i == 100:
+#                 progress["status"] = "Completed"
+#
+#     threading.Thread(target=process_task).start()
+#     return jsonify({"message": "Processing started."})
+#
+#
+# import json
+#
+# @app.route('/progress', methods=['GET'])
+# def get_progress():
+#     def generate():
+#         global progress
+#         while progress["percentage"] < 100:
+#             yield f"data: {json.dumps(progress)}\n\n"
+#             time.sleep(0.5)
+#         yield f"data: {json.dumps(progress)}\n\n"
+#
+#     return Response(stream_with_context(generate()), mimetype='text/event-stream')
+
 
 
 from flask import session
@@ -549,6 +595,8 @@ def clear_images():
             return jsonify({"error": f"Error when delete image: {str(e)}"}), 500
     else:
         return jsonify({"error": "Folder not exist."}), 400
+
+
 
 @app.route('/browse/<path:var>', defaults={"browse":True})
 @app.route('/download/<path:var>', defaults={"browse":False})

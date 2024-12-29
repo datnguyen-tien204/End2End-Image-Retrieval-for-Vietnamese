@@ -29,9 +29,9 @@ class ProjectionHead(nn.Module):
         return x
 
 class CLIPModel(nn.Module):
-    def __init__(self,temperature=CFG.temperature,image_embedding=CFG.image_embedding,text_embedding=CFG.text_embedding,):
+    def __init__(self,temperature=CFG.temperature,image_embedding=CFG.image_embedding,text_embedding=CFG.text_embedding,image_encoder_name='efficientnet_b0.ra4_e3600_r224_in1k',):
         super().__init__()
-        self.image_encoder = ImageEncoder()
+        self.image_encoder = ImageEncoder(model_name=image_encoder_name)
         self.text_encoder = TextEncoder()
         self.image_projection = ProjectionHead(embedding_dim=image_embedding)
         self.text_projection = ProjectionHead(embedding_dim=text_embedding)

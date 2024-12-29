@@ -56,10 +56,10 @@ def get_transforms():
     ])
 
 
-def load_model(model_path, device):
-    model = CLIPModel().to(device)
+def load_model(model_path, device, image_embedding, image_encoder_name):
+    model = CLIPModel(image_embedding=image_embedding, image_encoder_name=image_encoder_name).to(device)
     model.load_state_dict(torch.load(model_path, map_location=device))
-    model_image_embedding = CLIPModel().image_encoder.to(device)
+    model_image_embedding = CLIPModel(image_embedding=image_embedding, image_encoder_name=image_encoder_name).image_encoder.to(device)
     model.eval()
     model_image_embedding.eval()
 
@@ -276,7 +276,7 @@ def find_matches_for_faiss(model, image_embeddings, query, image_path, image_fil
 # Main logic
 # image_path = r"E:\NLP\ImageRetrieval\UIT-ViLC\dataset\test\images"
 
-def clip_run(image_path_flask,db_path, model_path):
+def clip_run(image_path_flask,db_path, model_path, image_embedding, image_encoder_name):
     print("Image paht: ", image_path_flask)
     create_database(db_path)
     create_faiss_database(db_path)
@@ -292,7 +292,7 @@ def clip_run(image_path_flask,db_path, model_path):
         dataset = ImageDataset(image_path_flask, transforms)
         dataloader = DataLoader(dataset, batch_size=CFG.batch_size, shuffle=False)
 
-        model, _ = load_model(model_path, CFG.device)
+        model, _ = load_model(model_path, CFG.device, image_embedding, image_encoder_name)
         all_embeddings, all_filenames, all_embedding_faiss = extract_embeddings(model, dataloader, CFG.device)
 
         # Lưu tất cả ảnh vào database
@@ -310,7 +310,7 @@ def clip_run(image_path_flask,db_path, model_path):
             dataset = ImageDataset(image_path_flask, transforms)
             dataloader = DataLoader(dataset, batch_size=CFG.batch_size, shuffle=False)
 
-            model, _ = load_model(model_path, CFG.device)
+            model, _ = load_model(model_path, CFG.device, image_embedding, image_encoder_name)
             new_embeddings, new_filenames, new_embedding_faiss = extract_embeddings(model, dataloader, CFG.device)
 
             # Lưu ảnh mới vào database
@@ -352,7 +352,7 @@ def build_faiss_index_with_small_k(embeddings):
     return index
 
 
-def query_similar_images(query_embedding, db_path="embeddings.db", state=1, k=5):
+def query_similar_images(query_embedding, db_path="embeddings.db", state=1, k=5, similarity_threshold=200):
     """
     Truy vấn hình ảnh gần nhất từ SQLite với FAISS, sử dụng các phương pháp khác nhau.
 
@@ -393,8 +393,7 @@ def query_similar_images(query_embedding, db_path="embeddings.db", state=1, k=5)
     # Tìm kiếm k ảnh gần nhất
     D, I = index.search(query_embedding, k)
 
-    # Trả về kết quả dưới dạng danh sách (đường dẫn ảnh, khoảng cách)
-    results = [(image_paths[i], D[0][j]) for j, i in enumerate(I[0])]
+    results = [(image_paths[i], D[0][j]) for j, i in enumerate(I[0]) if D[0][j] < similarity_threshold]
     return results
 
 
@@ -485,15 +484,15 @@ def get_all_image_paths(root_dir):
 def remove_duplicates(image_list):
     return [list(dict.fromkeys(sublist)) for sublist in image_list]
 
-def main(query,image_path,db_path, weights_path):
+def main(query,image_path,db_path, weights_path, image_embedding, image_encoder_name, similarity_threshold=200):
     model_path = weights_path
-    clip_run(image_path,db_path,weights_path)
+    clip_run(image_path,db_path,weights_path,image_embedding, image_encoder_name)
 
     input_shape = (224, 224, 3)
     batch_size = 1
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-    model_all, model_load_embed = load_model(model_path, CFG.device)
+    model_all, model_load_embed = load_model(model_path, CFG.device, image_embedding, image_encoder_name)
 
     # query="Vận động viên tennis nữ đang bước tới vung vợt đỡ bóng"
     # query = input()
@@ -505,10 +504,7 @@ def main(query,image_path,db_path, weights_path):
     list_images_output = []
 
     for img_path in matches_list:
-        # Tải lại embeddings và truy vấn
-        # query_image_path = img_path
         query_image = Image.open(img_path).convert('RGB')
-        # query_image = img_path
         image_transform = transforms.Compose([
             transforms.Resize(input_shape[:2]),
             transforms.ToTensor(),
@@ -520,7 +516,7 @@ def main(query,image_path,db_path, weights_path):
             query_embedding = model_load_embed(query_input).cpu().numpy()
 
         # Tìm kiếm hình ảnh gần nhất
-        results = query_similar_images(query_embedding, db_path=db_path, state=4, k=5)
+        results = query_similar_images(query_embedding, db_path=db_path, state=4, k=5, similarity_threshold=similarity_threshold)
 
         # Hiển thị ảnh kết quả
         related_image_paths = [result[0] for result in results]

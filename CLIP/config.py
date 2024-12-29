@@ -14,9 +14,6 @@ import torch.nn.functional as F
 import timm
 from transformers import DistilBertModel, DistilBertConfig, DistilBertTokenizer
 
-image_path = r"E:\NLP\ImageRetrieval\UIT-ViLC\dataset\test\images"
-captions_t_path = "/kaggle/working/content/UIT-ViLC/train"
-captions_v_path= "/kaggle/working/content/UIT-ViLC/val"
 
 class CFG:
     debug = False
