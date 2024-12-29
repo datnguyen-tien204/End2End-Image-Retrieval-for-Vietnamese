@@ -26,7 +26,8 @@ print("Your Computer IP Address is: " + IPAddr)
 
 app = Flask(__name__)
 #app.config["SERVER_NAME"] = "wifile.com"
-app.secret_key = 'my_secret_key'
+app.secret_key = 'a8e2b84d3cd4a23f8e20b94cd91b8271'
+app.config['SECRET_KEY'] = 'a8e2b84d3cd4a23f8e20b94cd91b8271'
 
 # FoNT AWESOME
 fa = FontAwesome(app)
@@ -425,30 +426,129 @@ def homePage():
 def query_image():
     return render_template('query_image.html')
 
+
+def download_weights(path, weights="efficient"):
+    if weights=="efficient":
+        try:
+            import requests
+            url = "https://huggingface.co/datasets/datnguyentien204/ViLC-EVJVQA-Datasets/resolve/main/uit-vilc-efficientnet-b0.pt"
+            r = requests.get(url, allow_redirects=True)
+            open(os.path.join(path, 'static/weights/uit-vilc-efficientnet-b0.pt'), 'wb').write(r.content)
+            return "Weights downloaded."
+        except Exception as e:
+            return "Weights not exists."
+
+    if weights=="swin":
+        try:
+            import requests
+            url = "https://huggingface.co/datasets/datnguyentien204/ViLC-EVJVQA-Datasets/resolve/main/uit-vilc-swin-b.pt"
+            r = requests.get(url, allow_redirects=True)
+            open(os.path.join(path, 'static/weights/uit-vilc-swin-b.pt'), 'wb').write(r.content)
+            return "Weights downloaded."
+        except Exception as e:
+            return "Weights not exists."
+
+
 @app.route('/send-text', methods=['POST'])
 def send_text():
     data = request.json
     text = data.get('text', '')
+    folder_path = os.path.join(app.root_path, 'static/get/images')
+
+    if not folder_path:
+        return jsonify({"error": "Chưa có thư mục nào được chọn."}), 400
 
     if text:
         print(f"Nội dung nhận được: {text}")
-        return jsonify({"message": f"Nội dung đã nhận: {text}"})
+        # Xử lý ảnh
+        upload_folder = os.path.join(app.root_path, 'static/get/images')
+        os.makedirs(upload_folder, exist_ok=True)
+        full_folder_path = os.path.join(app.root_path, folder_path)
+        db_path=os.path.join(app.root_path, 'static/db/image_embeddings.db')
+
+        ## Count number of files in folder
+        if os.path.isdir(full_folder_path) :
+            num_files = len([f for f in os.listdir(full_folder_path) if os.path.isfile(os.path.join(full_folder_path, f))])
+            if num_files<=50 and not os.path.isfile(os.path.join(app.root_path, 'static/weights/uit-vilc-swin-b.pt')):
+                status=download_weights(app.root_path, "swin")
+                print(status)
+
+            elif num_files>50 and not os.path.isfile(os.path.join(app.root_path, 'static/weights/uit-vilc-efficientnet-b0.pt')):
+                status=download_weights(app.root_path, "efficient")
+                print(status)
+        else:
+            print(f"Thư mục '{full_folder_path}' không tồn tại.")
+
+        try:
+            if (len([f for f in os.listdir(full_folder_path) if os.path.isfile(os.path.join(full_folder_path, f))])<=50):
+                weights_path=os.path.join(app.root_path, 'static/weights/uit-vilc-swin-b.pt')
+            else:
+                weights_path=os.path.join(app.root_path, 'static/weights/uit-vilc-efficientnet-b0.pt')
+
+            list_images = main(text, image_path=folder_path,db_path=db_path,weights_path=weights_path)
+            selected_images = []
+
+            for group in list_images:
+                for image_path in group:
+                    src_path = image_path.replace("\\", "/")
+                    filename = os.path.basename(src_path)
+                    dst_path = os.path.join(upload_folder, filename)
+
+                    if not os.path.exists(dst_path):
+                        shutil.copy(src_path, dst_path)
+
+                    selected_images.append(f'/static/get/images/{filename}')
+
+            return jsonify({"images": selected_images})
+
+        except Exception as e:
+            print(f"Lỗi khi xử lý ảnh: {e}")
+            return jsonify({"error": "Lỗi khi xử lý ảnh."}), 500
     else:
-        return jsonify({"error": "Không có nội dung nào được gửi"}), 400
+        return jsonify({"error": "No content sent"}), 400
 
 
-@app.route('/upload-folder-path', methods=['POST'])
-def upload_folder_path():
-    data = request.json
-    folder_path = data.get('folderPath', '')
+from flask import session
 
-    if folder_path:
-        # Xử lý thông tin đường dẫn thư mục (nếu cần)
-        print(f"Đường dẫn thư mục nhận được: {folder_path}")
-        return jsonify({"message": f"Đã nhận thư mục: {folder_path}"})
+@app.route('/process_folder', methods=['POST'])
+def process_folder():
+    upload_folder = os.path.join(app.root_path, 'static/get/images')
+    os.makedirs(upload_folder, exist_ok=True)
+
+    if 'images[]' not in request.files:
+        return jsonify({"error": "No files uploaded."}), 400
+
+    uploaded_files = request.files.getlist('images[]')
+    saved_files = []
+
+    for file in uploaded_files:
+        if file.filename == '':
+            continue
+        try:
+            file_name = os.path.basename(file.filename)
+            save_path = os.path.join(upload_folder, file_name)
+            file.save(save_path)
+            saved_files.append(save_path)
+        except Exception as e:
+            return jsonify({"error": f"Error when save files {file.filename}: {str(e)}"}), 500
+
+    return jsonify({"message": "Copy all files successfully.", "saved_files": saved_files})
+
+@app.route('/clear_images', methods=['POST'])
+def clear_images():
+    folder_path = os.path.join(app.root_path, 'static/get/images')
+
+    if os.path.exists(folder_path):
+        try:
+            for filename in os.listdir(folder_path):
+                file_path = os.path.join(folder_path, filename)
+                if os.path.isfile(file_path):
+                    os.remove(file_path)
+            return jsonify({"message": "Deleted all images."}), 200
+        except Exception as e:
+            return jsonify({"error": f"Error when delete image: {str(e)}"}), 500
     else:
-        return jsonify({"error": "Không nhận được thông tin thư mục"}), 400
-
+        return jsonify({"error": "Folder not exist."}), 400
 
 @app.route('/browse/<path:var>', defaults={"browse":True})
 @app.route('/download/<path:var>', defaults={"browse":False})

@@ -8,10 +8,15 @@ from CLIP.CLIP import CLIPModel
 import torch
 import torch.nn.functional as F
 import cv2
-import matplotlib.pyplot as plt
 import albumentations as A
-from torch.utils.data import DataLoader, Dataset
+import os
+import faiss
+import torch.nn as nn
+from torchvision import transforms
+from torch.utils.data import DataLoader
 from PIL import Image
+import matplotlib.pyplot as plt
+from torch.utils.data import Dataset
 
 
 class ImageDataset(Dataset):
@@ -149,7 +154,7 @@ def create_faiss_database(db_path):
     conn.close()
 
 
-def save_faiss_embeddings_to_db(db_path, filenames, embeddings):
+def save_faiss_embeddings_to_db(db_path, filenames, embeddings,image_path):
     """
     Lưu embeddings và đường dẫn ảnh vào SQLite.
     """
@@ -164,7 +169,7 @@ def save_faiss_embeddings_to_db(db_path, filenames, embeddings):
     ''')
 
     for filename, embedding in zip(filenames, embeddings):
-        image_path = os.path.join(CFG.image_path, filename)
+        image_path = os.path.join(image_path, filename)
         embedding_blob = sqlite3.Binary(embedding.tobytes())
         try:
             cursor.execute('''
@@ -239,7 +244,7 @@ def find_matches(model, image_embeddings, query, image_filenames, n=9):
     plt.show()
 
 
-def find_matches_for_faiss(model, image_embeddings, query, image_filenames, n=9):
+def find_matches_for_faiss(model, image_embeddings, query, image_path, image_filenames, n=9):
     tokenizer = AutoTokenizer.from_pretrained(CFG.text_tokenizer)
     encoded_query = tokenizer([query], padding=True, truncation=True, max_length=CFG.max_length, return_tensors="pt")
     batch = {
@@ -262,61 +267,58 @@ def find_matches_for_faiss(model, image_embeddings, query, image_filenames, n=9)
 
     list_images_matches = []
     for match in matches:
-        image = os.path.join(CFG.image_path, match)
+        image = os.path.join(image_path, match)
         list_images_matches.append(image)
 
     return list_images_matches
 
 
 # Main logic
-db_path = r'E:\NLP\ImageRetrieval\DeployModel_FileExplorer\image_embeddings.db'
-create_database(db_path)
-create_faiss_database(db_path)
-
-# Load filenames and embeddings from the database
-db_filenames, db_embeddings = load_embeddings_from_db(db_path)
-db_faiss_filenames, db_faiss_embeddings = load_embeddings_faiss_from_db(db_path)
 # image_path = r"E:\NLP\ImageRetrieval\UIT-ViLC\dataset\test\images"
 
-def clip_run(image_path):
+def clip_run(image_path_flask,db_path, model_path):
+    print("Image paht: ", image_path_flask)
+    create_database(db_path)
+    create_faiss_database(db_path)
+
+    # Load filenames and embeddings from the database
+    db_filenames, db_embeddings = load_embeddings_from_db(db_path)
+    db_faiss_filenames, db_faiss_embeddings = load_embeddings_faiss_from_db(db_path)
+
     # Nếu không có embeddings trong database
     if db_embeddings.size == 0:
         print("Database is empty. Processing all images...")
         transforms = get_transforms()
-        dataset = ImageDataset(image_path, transforms)
+        dataset = ImageDataset(image_path_flask, transforms)
         dataloader = DataLoader(dataset, batch_size=CFG.batch_size, shuffle=False)
 
-        model, _ = load_model(r"E:\NLP\ImageRetrieval\Final\uit-vilc-swin-b.pt", CFG.device)
+        model, _ = load_model(model_path, CFG.device)
         all_embeddings, all_filenames, all_embedding_faiss = extract_embeddings(model, dataloader, CFG.device)
 
         # Lưu tất cả ảnh vào database
         save_embeddings_to_db(db_path, all_filenames, all_embeddings)
-        save_faiss_embeddings_to_db(db_path, all_filenames, all_embedding_faiss)
+        save_faiss_embeddings_to_db(db_path, all_filenames, all_embedding_faiss, image_path_flask)
         print(f"All images processed and saved to database: {len(all_filenames)} images.")
     else:
         # Xác định ảnh mới
         print("Loading existing data from database...")
-        new_images = get_new_images(image_path, db_filenames)
+        new_images = get_new_images(image_path_flask, db_filenames)
 
         if new_images:
             print(f"Found {len(new_images)} new images. Processing...")
             transforms = get_transforms()
-            dataset = ImageDataset(CFG.image_path, transforms)
+            dataset = ImageDataset(image_path_flask, transforms)
             dataloader = DataLoader(dataset, batch_size=CFG.batch_size, shuffle=False)
 
-            model, _ = load_model(r"E:\NLP\ImageRetrieval\Final\uit-vilc-swin-b.pt", CFG.device)
+            model, _ = load_model(model_path, CFG.device)
             new_embeddings, new_filenames, new_embedding_faiss = extract_embeddings(model, dataloader, CFG.device)
 
             # Lưu ảnh mới vào database
             save_embeddings_to_db(db_path, new_filenames, new_embeddings)
-            save_faiss_embeddings_to_db(db_path, new_filenames, new_embedding_faiss)
+            save_faiss_embeddings_to_db(db_path, new_filenames, new_embedding_faiss, image_path_flask)
             print(f"Processed and saved {len(new_filenames)} new images to database.")
         else:
             print("No new images found. Database is up to date.")
-
-# Nạp lại toàn bộ dữ liệu từ database
-all_filenames, all_embeddings = load_embeddings_from_db(db_path)
-all_faiss_filenames, all_faiss_embeddings = load_embeddings_faiss_from_db(db_path)
 
 
 def build_faiss_index_with_hnsw(embeddings, d, m=32, ef_construction=40):
@@ -394,41 +396,6 @@ def query_similar_images(query_embedding, db_path="embeddings.db", state=1, k=5)
     # Trả về kết quả dưới dạng danh sách (đường dẫn ảnh, khoảng cách)
     results = [(image_paths[i], D[0][j]) for j, i in enumerate(I[0])]
     return results
-
-
-import os
-import numpy as np
-import faiss
-import torch
-import torch.nn as nn
-from torchvision import transforms
-from torchvision.datasets import ImageFolder
-from torch.utils.data import DataLoader
-from torchvision.models import mobilenet_v2
-from PIL import Image
-import matplotlib.pyplot as plt
-import matplotlib
-from torch.utils.data import Dataset
-import ipywidgets as widgets
-from IPython.display import display
-
-
-def extract_embeddings(model, dataloader, device):
-    model.eval()
-    embeddings = []
-    labels = []
-
-    with torch.no_grad():
-        for inputs, labels_batch in dataloader:
-            inputs = inputs.to(device)
-            outputs = model(inputs)
-            embeddings.append(outputs.cpu().numpy())
-            labels.append(labels_batch.numpy())
-
-    embeddings = np.vstack(embeddings)
-    labels = np.concatenate(labels)
-
-    return embeddings, labels
 
 
 def load_faiss(fvecs_path, dim=1280):
@@ -515,10 +482,12 @@ def get_all_image_paths(root_dir):
 
     return image_paths
 
+def remove_duplicates(image_list):
+    return [list(dict.fromkeys(sublist)) for sublist in image_list]
 
-def main(query,image_path):
-    model_path = r"E:\NLP\ImageRetrieval\Final\uit-vilc-swin-b.pt"
-    clip_run(image_path)
+def main(query,image_path,db_path, weights_path):
+    model_path = weights_path
+    clip_run(image_path,db_path,weights_path)
 
     input_shape = (224, 224, 3)
     batch_size = 1
@@ -531,7 +500,7 @@ def main(query,image_path):
 
     ## Embedding_images
     all_filenames, all_embeddings = load_embeddings_from_db(db_path)
-    matches_list = find_matches_for_faiss(model_all, torch.tensor(all_embeddings), query, all_filenames, n=9)
+    matches_list = find_matches_for_faiss(model_all, torch.tensor(all_embeddings), query,image_path, all_filenames, n=9)
 
     list_images_output = []
 
@@ -551,7 +520,7 @@ def main(query,image_path):
             query_embedding = model_load_embed(query_input).cpu().numpy()
 
         # Tìm kiếm hình ảnh gần nhất
-        results = query_similar_images(query_embedding, db_path=r"E:\NLP\ImageRetrieval\DeployModel_FileExplorer\image_embeddings.db", state=4, k=5)
+        results = query_similar_images(query_embedding, db_path=db_path, state=4, k=5)
 
         # Hiển thị ảnh kết quả
         related_image_paths = [result[0] for result in results]
@@ -566,8 +535,8 @@ def main(query,image_path):
             list_images_output.append(list_images)
         else:
             list_images=[]
-
-    return list_images_output
+    list_images_output_processed=remove_duplicates(list_images_output)
+    return list_images_output_processed
 
 
 def example_search_trained_data(test_embeddings, test_labels, faiss_index):
@@ -589,7 +558,7 @@ def example_load_image_data(image_path, input_shape, device, model, faiss_index,
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     ])
-    input_image = image_transform(image).unsqueeze(0)  # 배치 차원을 추가합니다
+    input_image = image_transform(image).unsqueeze(0)
     input_image = input_image.to(device)
     with torch.no_grad():
         input_embedding = model(input_image).cpu().numpy()

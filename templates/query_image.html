@@ -5,8 +5,8 @@
   <div id="leftPane" style="width: 40%; border-right: 2px solid #ccc; overflow-y: auto; padding: 10px;">
     <div id="gallery"></div>
   </div>
-  <div id="rightPane" style="width: 60%; padding: 10px;">
-    <!-- Nội dung bên phải -->
+  <div id="rightPane" style="width: 60%; padding: 10px; border-right: 2px solid #ccc; overflow-y: auto; ">
+    <div id="gallery_right"></div>
   </div>
 </div>
 
@@ -32,7 +32,7 @@
       </button>
       <input id="folderInput" type="file" webkitdirectory directory style="display: none;">
     </div>
-  <input id="textBox" type="text" placeholder="Nhập nội dung" style="padding: 10px; width: 700px; border-radius: 20px; border: 1px solid #ccc;">
+  <input id="textBox" type="text" placeholder="Nhập nội dung cần tìm kiếm..." style="padding: 10px; width: 700px; border-radius: 20px; border: 1px solid #ccc;">
   <button id="sendButton" style="margin-left: -50px; margin-top: 7px ;border: none;  background-color: #ffffff; color: white; cursor: pointer; width: 17px; height: 17px">
     <img src="https://img.icons8.com/?size=100&id=7874&format=png&color=000000" alt="Send Icon" style="width: 17px; height: 17px;">
   </button>
@@ -166,7 +166,7 @@ background-image: linear-gradient(180deg, #8EC5FC 0%, #E0C3FC 100%);
   }
   .image-container {
     position: relative;
-    width: calc(50% - 10px); /* Hai ảnh mỗi hàng */
+    width: calc(33% - 10px); /* Hai ảnh mỗi hàng */
     overflow: hidden;
     border-radius: 8px;
   }
@@ -214,6 +214,63 @@ background-image: linear-gradient(180deg, #8EC5FC 0%, #E0C3FC 100%);
     background-color: rgba(255, 255, 255, 0.2);
   }
 
+  /*Gallery Right*/
+    #gallery_right {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+#gallery_right .image-container {
+    position: relative;
+    width: calc(33.33% - 10px); /* Hai ảnh mỗi hàng */
+    overflow: hidden;
+    border-radius: 8px;
+}
+#gallery_right .image-container img {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+#gallery_right .image-container:hover img {
+    transform: scale(1.1);
+}
+#gallery_right .hover-icons {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    background-color: rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+#gallery_right .image-container:hover .hover-icons {
+    opacity: 1;
+}
+#gallery_right .hover-icons button {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+    transition: background-color 0.3s ease;
+}
+#gallery_right .hover-icons button:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+
   /* Btn Send */
     #sendButton {
     background-color: #000000;
@@ -224,15 +281,60 @@ background-image: linear-gradient(180deg, #8EC5FC 0%, #E0C3FC 100%);
 #sendButton:focus {
     outline: none; /* Đảm bảo không hiện viền khi được chọn */
 }
+#sendButton:hover {
+    filter: brightness(1.2);
+  background-color: #0c5460;
+}
 
 </style>
 
 <script>
 
+  // Placeholder
+  const textBox = document.getElementById("textBox");
+  const placeholderText = "Nhập nội dung cần tìm kiếm...";
+  let intervalId;
+
+  function startPlaceholderAnimation() {
+    let index = 0;
+    let adding = true;
+
+    clearInterval(intervalId); // Đảm bảo không có hiệu ứng cũ
+
+    intervalId = setInterval(() => {
+      if (adding) {
+        textBox.placeholder = placeholderText.slice(0, index + 1);
+        index++;
+
+        if (index === placeholderText.length) {
+          adding = false; // Bắt đầu xóa
+        }
+      } else {
+        textBox.placeholder = placeholderText.slice(0, index - 1);
+        index--;
+
+        if (index === 0) {
+          adding = true; // Bắt đầu thêm lại
+        }
+      }
+    }, 150); // Tốc độ thay đổi ký tự (150ms)
+  }
+
+  function stopPlaceholderAnimation() {
+    clearInterval(intervalId);
+    textBox.placeholder = placeholderText; // Đặt lại placeholder gốc
+  }
+
+  textBox.addEventListener("mouseenter", startPlaceholderAnimation);
+  textBox.addEventListener("mouseleave", stopPlaceholderAnimation);
+
+  // Textbox
+
     document.getElementById('textBox').addEventListener('keydown', function (event) {
     if (event.key === 'Enter') { // Kiểm tra nếu nhấn phím Enter
         document.getElementById('sendButton').click(); // Gọi sự kiện click nút Gửi
         event.preventDefault(); // Ngăn chặn hành vi mặc định (như thêm dòng mới)
+        this.value = '';
     }
     });
 
@@ -242,13 +344,28 @@ background-image: linear-gradient(180deg, #8EC5FC 0%, #E0C3FC 100%);
 
   document.getElementById('folderInput').addEventListener('change', function (e) {
     const files = Array.from(e.target.files);
+
     const selectedFolderDiv = document.getElementById('selectedFolder');
     const gallery = document.getElementById('gallery');
 
+    const files_send = e.target.files;
+    const formData = new FormData();
+    const folderPath_send = files[0].webkitRelativePath.split('/')[0];
+    formData.append('folder_path', folderPath_send);
+
+
     if (files.length > 0) {
+      files.forEach(file => {
+            if (file.type.startsWith('image/')) {
+                formData.append('images[]', file); // Thêm từng file ảnh vào FormData
+            }
+        });
+
+
       const folderPath = files[0].webkitRelativePath.split('/')[0];
-      // selectedFolderDiv.textContent = `Đã chọn: ${folderPath}`;
+        //selectedFolderDiv.textContent = `Đã chọn: ${folderPath}`;
         selectedFolderDiv.textContent = ``;
+
       gallery.innerHTML = '';
 
       files.forEach(file => {
@@ -262,7 +379,6 @@ background-image: linear-gradient(180deg, #8EC5FC 0%, #E0C3FC 100%);
           const hoverIcons = document.createElement('div');
           hoverIcons.className = 'hover-icons';
 
-          // Nút phóng to
           const zoomButton = document.createElement('button');
           zoomButton.innerHTML = '🔍';
           zoomButton.onclick = () => {
@@ -290,7 +406,6 @@ background-image: linear-gradient(180deg, #8EC5FC 0%, #E0C3FC 100%);
 
             modal.onclick = () => document.body.removeChild(modal);
           };
-
           // Nút lưu ảnh
           const saveButton = document.createElement('button');
           saveButton.innerHTML = '💾';
@@ -311,25 +426,43 @@ background-image: linear-gradient(180deg, #8EC5FC 0%, #E0C3FC 100%);
         }
       });
 
-        fetch('/upload-folder-path', {
+
+        // fetch('/upload-folder-path', {
+        //     method: 'POST',
+        //     headers: {
+        //         'Content-Type': 'application/json',
+        //     },
+        //     body: JSON.stringify({ folderPath }),
+        // })
+        fetch('/process_folder', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ folderPath }),
+            body: formData
         })
         .then(response => response.json())
-        .then(data => console.log(`Server đã nhận: ${data.message}`))
+        .then(data => {
+            if (data.error) {
+                console.error(`Lỗi: ${data.error}`);
+            } else {
+                console.log(`Đã sao chép ảnh vào đường dẫn: ${data.target_path}`);
+            }
+        })
         .catch(error => console.error('Lỗi:', error));
     } else {
         alert('Không có thư mục nào được chọn.');
-        selectedFolderDiv.textContent = '';
     }
-  });
+});
 
   document.getElementById('sendButton').addEventListener('click', function () {
     const textBox = document.getElementById('textBox');
+    const gallery_left = document.getElementById('gallery');
     const text = textBox.value.trim();
+    const gallery = document.getElementById('gallery_right');
+
+    if (!gallery_left.children.length) {
+        alert('Vui lòng thêm ảnh vào gallery bên trái trước khi gửi nội dung!');
+        return;
+    }
+
 
     if (text) {
         fetch('/send-text', {
@@ -340,11 +473,90 @@ background-image: linear-gradient(180deg, #8EC5FC 0%, #E0C3FC 100%);
             body: JSON.stringify({ text }),
         })
         .then(response => response.json())
-        .then(data => console.log(`Server nhận: ${data.message}`))
+        .then(data => {
+            if (data.error) {
+                alert(data.error);
+            } else {
+                gallery.innerHTML = ''; // Xóa nội dung cũ
+                data.images.forEach(imageUrl => {
+                    const imgContainer = document.createElement('div');
+                    imgContainer.className = 'image-container';
+
+                    const img = document.createElement('img');
+                    img.src = imageUrl;
+
+                    const hoverIcons = document.createElement('div');
+                    hoverIcons.className = 'hover-icons';
+
+                    // Nút phóng to
+                    const zoomButton = document.createElement('button');
+                    zoomButton.innerHTML = '🔍';
+                    zoomButton.onclick = () => {
+                        const modal = document.createElement('div');
+                        modal.style.position = 'fixed';
+                        modal.style.top = '0';
+                        modal.style.left = '0';
+                        modal.style.width = '100vw';
+                        modal.style.height = '100vh';
+                        modal.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+                        modal.style.display = 'flex';
+                        modal.style.justifyContent = 'center';
+                        modal.style.alignItems = 'center';
+                        modal.style.zIndex = '1000';
+                        modal.style.cursor = 'pointer';
+
+                        const modalImg = document.createElement('img');
+                        modalImg.src = img.src;
+                        modalImg.style.maxWidth = '90%';
+                        modalImg.style.maxHeight = '90%';
+                        modalImg.style.borderRadius = '10px';
+
+                        modal.appendChild(modalImg);
+                        document.body.appendChild(modal);
+
+                        modal.onclick = () => document.body.removeChild(modal);
+                    };
+
+                    // Nút lưu ảnh
+                    const saveButton = document.createElement('button');
+                    saveButton.innerHTML = '💾';
+                    saveButton.onclick = () => {
+                        const link = document.createElement('a');
+                        link.href = img.src;
+                        link.download = imageUrl.split('/').pop(); // Lấy tên file từ URL
+                        link.click();
+                    };
+
+                    hoverIcons.appendChild(zoomButton);
+                    hoverIcons.appendChild(saveButton);
+
+                    imgContainer.appendChild(img);
+                    imgContainer.appendChild(hoverIcons);
+
+                    gallery.appendChild(imgContainer);
+                });
+            }
+        })
         .catch(error => console.error('Lỗi:', error));
     } else {
         alert('Vui lòng nhập nội dung.');
     }
-  });
+    textBox.value = '';
+});
+
+  window.addEventListener("beforeunload", function() {
+        fetch('/clear_images', {
+            method: 'POST',
+        }).then(response => {
+            if (response.ok) {
+                console.log("Đã xóa tất cả ảnh.");
+            } else {
+                console.error("Lỗi khi xóa ảnh.");
+            }
+        }).catch(error => {
+            console.error('Lỗi khi yêu cầu xóa ảnh:', error);
+        });
+    });
+
 </script>
 {% endblock content %}

@@ -20,9 +20,9 @@ captions_v_path= "/kaggle/working/content/UIT-ViLC/val"
 
 class CFG:
     debug = False
-    image_path = image_path
-    captions_train_path = captions_t_path
-    captions_val_path = "/kaggle/working/content/UIT-ViLC/val"
+    # image_path = image_path
+    # captions_train_path = captions_t_path
+    # captions_val_path = "/kaggle/working/content/UIT-ViLC/val"
     batch_size = 90
     num_workers = 2
     head_lr = 1e-3
@@ -34,13 +34,13 @@ class CFG:
     epochs = 2
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    model_name = 'swin_base_patch4_window7_224.ms_in22k'
-    image_embedding = 1024
+    model_name = 'efficientnet_b0.ra4_e3600_r224_in1k'
+    image_embedding = 1280
     # text_encoder_model = "distilbert-base-uncased"
-    text_encoder_model = r"E:\NLP\ImageRetrieval\DeployModel_FileExplorer\CLIP\phobert-base-v2"
+    text_encoder_model = "vinai/phobert-base-v2"
     text_embedding = 768
     # text_tokenizer = "distilbert-base-uncased"
-    text_tokenizer = r"E:\NLP\ImageRetrieval\DeployModel_FileExplorer\CLIP\phobert-base-v2"
+    text_tokenizer = "vinai/phobert-base-v2"
     max_length = 500
 
     pretrained = True # for both image encoder and text encoder

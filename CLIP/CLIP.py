@@ -29,12 +29,7 @@ class ProjectionHead(nn.Module):
         return x
 
 class CLIPModel(nn.Module):
-    def __init__(
-        self,
-        temperature=CFG.temperature,
-        image_embedding=CFG.image_embedding,
-        text_embedding=CFG.text_embedding,
-    ):
+    def __init__(self,temperature=CFG.temperature,image_embedding=CFG.image_embedding,text_embedding=CFG.text_embedding,):
         super().__init__()
         self.image_encoder = ImageEncoder()
         self.text_encoder = TextEncoder()

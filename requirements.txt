@@ -11,3 +11,18 @@ MarkupSafe==3.0.2
 Pillow==10.2.0
 qrcode==7.1
 Werkzeug==2.3.8
+scipy==1.14.1
+seaborn==0.13.2
+faiss-cpu==1.7.4
+albumentations==1.4.24
+huggingface-hub==0.27.0
+safetensors==0.4.5
+transformers
+numpy<2.0.0
+tqdm
+timm
+torch==1.12.1
+torchaudio==0.12.1
+torchvision ==0.13.1
+opencv-python==4.8.0.76
+pillow==10.2.0
