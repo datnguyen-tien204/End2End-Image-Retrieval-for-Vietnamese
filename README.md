@@ -52,7 +52,7 @@ The model was rigorously evaluated on the **UIT-ViLC** and **UIT-EVJVQA** datase
 #### 1. Image Encoder Selection
 The Swin Transformer demonstrated superior performance over other architectures on the combined dataset.
 
-| Model              | Top1 Acc | Top5 Acc | R@5     | mAP     | **Avg.** |
+| Model              | Top1 Err | Top5 Err | R@5     | mAP     | **Avg.** |
 | :----------------- | :------- | :------- | :------ | :------ | :------- |
 | **Swin-Transformer** | **7.27%**  | **36.22%** | **36.24%**| **30.63** | **34.25**  |
 | ConvNextV2         | 6.02%    | 33.08%   | 33.02%  | 28.21   | 33.01    |
@@ -60,7 +60,7 @@ The Swin Transformer demonstrated superior performance over other architectures 
 #### 2. Text Encoder Selection
 The `phoBERT-large` model provided a significant boost in performance compared to the `base` version.
 
-| Model             | Top1 Acc | R@5     | mAP     | **Avg.** |
+| Model             | Top1 Err | R@5     | mAP     | **Avg.** |
 | :---------------- | :------- | :------ | :------ | :------- |
 | **phoBERT-large** | **7.99%**  | **39.86%**| **33.69** | **37.68**  |
 | phoBERT-base      | 7.27%    | 36.24%  | 30.63   | 34.25    |
@@ -68,7 +68,7 @@ The `phoBERT-large` model provided a significant boost in performance compared t
 #### 3. FAISS Search Method Evaluation
 The **KNN (Flat L2)** method yielded the highest accuracy on the DISC21 benchmark dataset.
 
-| FAISS Method      | Top1 Acc | Top30 Acc | mAP@5  | **Avg.** |
+| FAISS Method      | Top1 Err | Top30 Err | mAP@5  | **Avg.** |
 | :---------------- | :------- | :-------- | :----- | :------- |
 | **KNN**           | **14.9%**  | **70.0%**   | **0.68** | **58.1**   |
 | Proximity Graph   | 13.2%    | 68.4%     | 0.62   | 52.3     |
