@@ -16,12 +16,12 @@ The system is deployed as a simple and intuitive web application.
 
 1.  **Select the target image directory for querying:**
     ![Interface for selecting a folder](imgs/web2.png)
-    *Figure 3.17: Interface for selecting a folder*
+    **Interface for selecting a folder**
 
 2.  **Enter a Vietnamese text query and receive the results:**
     *Query: "A boy playing tennis"*
     ![Query results for "A boy playing tennis"](imgs/web3.png)
-    *Figure 3.18: Query results for "A boy playing tennis"*
+    **Query results for "A boy playing tennis"**
 
 
 ## ✨ Key Features
