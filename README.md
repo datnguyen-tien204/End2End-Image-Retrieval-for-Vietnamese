@@ -15,13 +15,14 @@ The system allows a user to input a descriptive sentence in Vietnamese (e.g., "a
 The system is deployed as a simple and intuitive web application.
 
 1.  **Select the target image directory for querying:**
-    ![Interface for selecting a folder](https_i.ibb.co_gDFR8P3_image.png)
-    *Replace with your actual screenshot URL, e.g., from Figure 3.17*
+    ![Interface for selecting a folder](imgs/web2.png)
+    *Figure 3.17: Interface for selecting a folder*
 
 2.  **Enter a Vietnamese text query and receive the results:**
     *Query: "A boy playing tennis"*
-    ![Query results for "A boy playing tennis"](https_i.ibb.co_nLqL1nS_image-1.png)
-    *Replace with your actual screenshot URL, e.g., from Figure 3.18*
+    ![Query results for "A boy playing tennis"](imgs/web3.png)
+    *Figure 3.18: Query results for "A boy playing tennis"*
+
 
 ## ✨ Key Features
 
