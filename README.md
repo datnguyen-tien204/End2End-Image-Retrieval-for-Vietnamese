@@ -140,8 +140,19 @@ This is the simplest way to get the application running without environment conf
     pip install -r requirements.txt
     ```
 
-4.  **Download Datasets and Model Weights:**
-    *Note: You will need to download the pre-trained model weights and datasets. Place them in the appropriate directories (e.g., `models/`, `data/`) as configured in the project's config file.*
+4.  **Download Model Weights:**
+   
+| File Name                                            | Size    | Download Link                                                                 |
+|-----------------------------------------------------|---------|--------------------------------------------------------------------------------|
+| uit-vilc-convnextv2-50.pt                           | 893 MB  | [Download](https://huggingface.co/datasets/datnguyentien204/ViLC-EVJVQA-Datasets/resolve/main/uit-vilc-convnextv2-50.pt) |
+| uit-vilc-dinov2.pt                                  | 889 MB  | [Download](https://huggingface.co/datasets/datnguyentien204/ViLC-EVJVQA-Datasets/resolve/main/uit-vilc-dinov2.pt) |
+| uit-vilc-efficientnet-b0.pt                         | 559 MB  | [Download](https://huggingface.co/datasets/datnguyentien204/ViLC-EVJVQA-Datasets/resolve/main/uit-vilc-efficientnet-b0.pt) |
+| uit-vilc-image_encoder_weights-dinov2.pt            | 346 MB  | [Download](https://huggingface.co/datasets/datnguyentien204/ViLC-EVJVQA-Datasets/resolve/main/uit-vilc-image_encoder_weights-dinov2.pt) |
+| uit-vilc-image_encoder_weights-efficientnet-b0.pt   | 16.3 MB | [Download](https://huggingface.co/datasets/datnguyentien204/ViLC-EVJVQA-Datasets/resolve/main/uit-vilc-image_encoder_weights-efficientnet-b0.pt) |
+| uit-vilc-image_encoder_weights-mamba.pt             | 327 MB  | [Download](https://huggingface.co/datasets/datnguyentien204/ViLC-EVJVQA-Datasets/resolve/main/uit-vilc-image_encoder_weights-mamba.pt) |
+| uit-vilc-image_encoder_weights-swin-b.pt            | 347 MB  | [Download](https://huggingface.co/datasets/datnguyentien204/ViLC-EVJVQA-Datasets/resolve/main/uit-vilc-image_encoder_weights-swin-b.pt) |
+| uit-vilc-mamba.pt                                   | 872 MB  | [Download](https://huggingface.co/datasets/datnguyentien204/ViLC-EVJVQA-Datasets/resolve/main/uit-vilc-mamba.pt) |
+| uit-vilc-swin-b.pt                                  | 890 MB  | [Download](https://huggingface.co/datasets/datnguyentien204/ViLC-EVJVQA-Datasets/resolve/main/uit-vilc-swin-b.pt) |
 
 5.  **Run the application:**
     ```bash
