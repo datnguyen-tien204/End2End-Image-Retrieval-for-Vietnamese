@@ -36,8 +36,7 @@ The system is deployed as a simple and intuitive web application.
 
 The project employs a proposed multi-modal architecture that combines state-of-the-art components for maximum effectiveness.
 
-![Proposed Model Architecture](https_i.ibb.co_r262qMh_image-2.png)
-*Replace with your actual architecture diagram, e.g., from Figure 3.6*
+![Proposed Model Architecture](imgs/model2.png)
 
 The pipeline works as follows:
 1.  **Image Encoder (Swin Transformer):** Encodes images into high-dimensional feature vectors.
