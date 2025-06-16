@@ -49,30 +49,31 @@ The pipeline works as follows:
 
 The model was rigorously evaluated on the **UIT-ViLC** and **UIT-EVJVQA** datasets.
 
-#### 1. Image Encoder Selection
+#### 1. Image Encoder Selection  
 The Swin Transformer demonstrated superior performance over other architectures on the combined dataset.
 
 | Model              | Top1 Err | Top5 Err | R@5     | mAP     | **Avg.** |
 | :----------------- | :------- | :------- | :------ | :------ | :------- |
-| **Swin-Transformer** | **7.27%**  | **36.22%** | **36.24%**| **30.63** | **34.25**  |
-| ConvNextV2         | 6.02%    | 33.08%   | 33.02%  | 28.21   | 33.01    |
+| **Swin-Transformer** | **15.2%**  | **6.8%**   | **85.1%** | **83.4** | **84.25**  |
+| ConvNextV2         | 22.8%    | 10.5%    | 76.4%   | 74.3    | 75.35    |
 
-#### 2. Text Encoder Selection
+#### 2. Text Encoder Selection  
 The `phoBERT-large` model provided a significant boost in performance compared to the `base` version.
 
 | Model             | Top1 Err | R@5     | mAP     | **Avg.** |
 | :---------------- | :------- | :------ | :------ | :------- |
-| **phoBERT-large** | **7.99%**  | **39.86%**| **33.69** | **37.68**  |
-| phoBERT-base      | 7.27%    | 36.24%  | 30.63   | 34.25    |
+| **phoBERT-large** | **16.1%**  | **84.1%** | **81.9** | **82.00**  |
+| phoBERT-base      | 21.3%    | 76.2%   | 73.1    | 74.67    |
 
-#### 3. FAISS Search Method Evaluation
+#### 3. FAISS Search Method Evaluation  
 The **KNN (Flat L2)** method yielded the highest accuracy on the DISC21 benchmark dataset.
 
 | FAISS Method      | Top1 Err | Top30 Err | mAP@5  | **Avg.** |
 | :---------------- | :------- | :-------- | :----- | :------- |
-| **KNN**           | **14.9%**  | **70.0%**   | **0.68** | **58.1**   |
-| Proximity Graph   | 13.2%    | 68.4%     | 0.62   | 52.3     |
-| K-means           | 12.1%    | 66.2%     | 0.61   | 50.8     |
+| **KNN**           | **16.5%**  | **5.8%**    | **82.0** | **81.2**   |
+| Proximity Graph   | 20.2%    | 7.1%      | 74.5   | 73.0     |
+| K-means           | 23.0%    | 9.3%      | 70.2   | 67.6     |
+
 
 ## 💻 Tech Stack
 
