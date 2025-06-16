@@ -94,8 +94,8 @@ This is the simplest way to get the application running without environment conf
 
 1.  **Clone the repository:**
     ```bash
-    git clone https://github.com/your-username/your-repo-name.git
-    cd your-repo-name
+    git clone https://github.com/datnguyen-tien204/End2End-Image-Retrieval-for-Vietnamese.git
+    cd End2End-Image-Retrieval-for-Vietnamese
     ```
 
 2.  **Build the Docker image:**
@@ -118,8 +118,8 @@ This is the simplest way to get the application running without environment conf
 
 1.  **Clone the repository:**
     ```bash
-    git clone https://github.com/your-username/your-repo-name.git
-    cd your-repo-name
+    git clone https://github.com/datnguyen-tien204/End2End-Image-Retrieval-for-Vietnamese.git
+    cd End2End-Image-Retrieval-for-Vietnamese
     ```
 
 2.  **Create and activate a virtual environment:**
@@ -157,8 +157,6 @@ This is the simplest way to get the application running without environment conf
 
 ## 🙏 Acknowledgements
 
--   Sincere thanks to **Hung Yen University of Technology and Education** for providing the opportunity to conduct this research.
--   Special thanks to my supervisor, **Dr. Trung-Hieu Le**, for his dedicated guidance and support throughout the project.
 -   Credit to the NLP group at the **University of Science, VNU-HCMC**, for creating and sharing the valuable UIT-ViLC and EVJVQA datasets.
 
 ## 📄 License
