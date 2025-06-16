@@ -96,6 +96,17 @@ The **KNN (Flat L2)** method yielded the highest accuracy on the DISC21 benchmar
 -   **Backend & API:** Flask
 -   **Deployment:** Docker
 
+## Dataset Source
+
+The core datasets used for training and evaluation are:
+-   **UIT-ViLC:** A dataset for Vietnamese Image Captioning.
+-   **UIT-EVJVQA:** A multilingual (English-Japanese-Vietnamese) Visual Question Answering dataset with a focus on Vietnamese context.
+
+Both datasets were created and are maintained by the NLP group at the **University of Science, VNU-HCMC**. We are grateful for their contribution to the research community.
+
+-   [Original UIT-ViLC Repository](https://github.com/uitnlp/UIT-ViLC)
+-   [Original EVJVQA Information](https://vlsp.org.vn/vlsp2022/multilingual-vqa)
+
 ## 🚀 Getting Started
 
 You can run this project using Docker (recommended for ease of use) or by setting up the environment manually.
